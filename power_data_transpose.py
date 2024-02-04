@@ -45,8 +45,11 @@ for year in years:
             rename_dict = {i: i - 2 for i in range(2, 103)}  # Subtracting 2 from each column index
             # Rename the columns
             fuel_month.rename(columns=rename_dict, inplace=True)
+            for col in range(0, 97):  # Assuming you have at least 97 columns in your DataFrame
+                if col in fuel_month.columns:  # Check if the column index exists in the DataFrame
+                    fuel_month[col] = fuel_month[col].astype(str).str.replace('1.00E', '1.00', case=False)
+                    fuel_month[col] = fuel_month[col].astype(str).str.replace('6.00E', '6.00', case=False)
             fuel_year = fuel_year.append(fuel_month)
-
 
     elif year == 2012:
         for month  in months:
