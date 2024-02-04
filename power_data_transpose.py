@@ -9,7 +9,7 @@ def hash_value(value):
 
 #load data into data frame
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-years = [2007, 2008, 2009, 2010, 2012, 2013, 2014, 2015,  2016, 2017, 2018, 2019, 2020, 2021, 2022]
+years = [2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,  2016, 2017, 2018, 2019, 2020, 2021, 2022]
 fuel_year = pd.DataFrame()
 for year in years:
     path = f'data/IntGenByFuel{year}.xls'
@@ -26,6 +26,29 @@ for year in years:
             fuel_month = pd.read_excel(path, sheet_name=f'{month}{str(year)[-2:]}', index_col=0, header=None)
             fuel_month['Date'] = fuel_month.index.str.split('-', 1).str[0]
             fuel_month['Fuel'] = fuel_month.index.str.split('-', 1).str[1]
+            fuel_year = fuel_year.append(fuel_month)
+
+    elif year == 2011:
+        for month in months:
+            fuel_month = pd.read_excel(path, sheet_name=f'{month}{str(year)[-2:]}', index_col=0, header=None)
+            fuel_month['Date'] = fuel_month.index
+            fuel_month['Fuel'] = fuel_month.iloc[:, 0]
+            fuel_month = fuel_month.drop(fuel_month[fuel_month['Date'] == 'Date'].index)
+            fuel_month['Date'] = pd.to_datetime(fuel_month['Date']).dt.date
+            fuel_month['Date'] = fuel_month['Date'].astype(str)
+            fuel_month['Fuel'] = fuel_month['Fuel'].astype(str)
+            # Concatenate 'Date' and 'Fuel' columns with an underscore between them
+            fuel_month['New_Index'] = fuel_month['Date'] + '_' + fuel_month['Fuel']
+            # Set this new column as the index
+            fuel_month.set_index('New_Index', inplace=True)
+            fuel_month.drop(fuel_month.columns[0], axis=1, inplace=True)
+            rename_dict = {i: i - 2 for i in range(2, 103)}  # Subtracting 2 from each column index
+            # Rename the columns
+            fuel_month.rename(columns=rename_dict, inplace=True)
+            for col in range(0, 97):  # Assuming you have at least 97 columns in your DataFrame
+                if col in fuel_month.columns:  # Check if the column index exists in the DataFrame
+                    fuel_month[col] = fuel_month[col].astype(str).str.replace('1.00E', '1.00', case=False)
+                    fuel_month[col] = fuel_month[col].astype(str).str.replace('6.00E', '6.00', case=False)
             fuel_year = fuel_year.append(fuel_month)
 
     elif year == 2012:
